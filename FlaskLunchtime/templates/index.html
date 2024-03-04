@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="p-6 max-w-sm mx-auto bg-white rounded-xl shadow-md flex items-center space-x-4">
+    <div>
+        <div class="text-xl font-medium text-black">Welcome to AppName!</div>
+        <p class="text-gray-500">Your journey starts here. Explore our features and join our community.</p>
+        {% if current_user.is_authenticated %}
+        <h1>Welcome back, {{ current_user.username }}!</h1>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lunchtime</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.1.2/dist/tailwind.min.css" rel="stylesheet">
+</head>
+<body class="bg-gray-100">
+    <nav class="bg-gray-800 p-4 text-white">
+        <div class="container mx-auto flex justify-between">
+            <a href="/" class="text-lg font-bold">AppName</a>
+            <div>
+                {% if current_user.is_authenticated %}
+                <a href="/logout" class="px-4 hover:underline">Logout</a>
+                {% else %}
+                <a href="/signup" class="px-4 hover:underline">Sign Up</a>
+                <a href="/login" class="px-4 hover:underline">Login</a>
+                {% endif %}
+            </div>
+        </div>
+    </nav>
+    
+
+    <main class="container mx-auto mt-5">
+        {% block content %}{% endblock %}
+    </main>
+</body>
+</html>
