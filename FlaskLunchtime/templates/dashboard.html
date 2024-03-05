@@ -1,0 +1,117 @@
+{% extends "base.html" %}
+
+{% block sidebar %}
+    <div class="p-4">
+        <h2 class="text-lg font-semibold mb-4">Your Groups</h2>
+        <ul>
+            {% for group in groups %}
+            <li class="mb-2 flex justify-between items-center">
+                {{ group.name }}
+                <button onclick="inviteToGroup('{{ group.id }}')" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-1 px-2 rounded">
+                    Invite
+                </button>
+            </li>
+            {% else %}
+            <li>You are not part of any groups.</li>
+            {% endfor %}
+        </ul>
+        <!-- Create Group Form -->
+        <div class="mt-4">
+            <input type="text" id="groupName" placeholder="Group Name" class="p-2 border rounded w-full mb-2">
+            <textarea id="groupDescription" placeholder="Group Description" class="p-2 border rounded w-full mb-2"></textarea>
+            <button onclick="createGroup(document.getElementById('groupName').value, document.getElementById('groupDescription').value)" class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded w-full">
+                Create Group
+            </button>
+        </div>
+    </div>
+
+    <!-- Friends List -->
+    <div class="p-4 border-t">
+        <h2 class="text-lg font-semibold mb-4">Friends List</h2>
+        <ul>
+            {% for friend in friends %}
+            <li class="mb-2">{{ friend.username }}</li>
+            {% else %}
+            <li>You have no friends added.</li>
+            {% endfor %}
+        </ul>
+        <!-- Add Friend Form -->
+        <div class="mt-4">
+            <input type="text" id="friendUsername" placeholder="Friend's Username" class="p-2 border rounded w-full mb-2">
+            <button onclick="addFriend(document.getElementById('friendUsername').value)" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded w-full">
+                Add Friend
+            </button>
+        </div>
+    </div>
+
+    <!-- Pending Requests -->
+    <div class="p-4 border-t">
+        <h2 class="text-lg font-semibold mb-4">Pending Friend Requests</h2>
+        <ul id="pendingRequestsList">
+            {% for request in pending_requests %}
+            <li class="mb-2 flex justify-between items-center">
+                {{ request.username }}
+                <div>
+                    <button onclick="acceptRequest('{{ request.id }}')" class="bg-green-500 hover:bg-green-700 text-white font-bold py-1 px-2 rounded">
+                        Accept
+                    </button>
+                    <button onclick="denyRequest('{{ request.id }}')" class="bg-red-500 hover:bg-red-700 text-white font-bold py-1 px-2 rounded">
+                        Deny
+                    </button>
+                </div>
+            </li>
+            {% else %}
+            <li>No pending friend requests.</li>
+            {% endfor %}
+        </ul>
+    </div>
+
+<!-- Modal for Inviting Friends to Group -->
+<div id="inviteModal" class="hidden fixed z-10 inset-0 overflow-y-auto">
+    <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+        <div class="fixed inset-0 transition-opacity" aria-hidden="true">
+            <div class="absolute inset-0 bg-gray-500 opacity-75"></div>
+        </div>
+        <!-- Modal content -->
+        <div class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
+            <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+                <div class="sm:flex sm:items-start">
+                    <div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
+                        <h3 class="text-lg leading-6 font-medium text-gray-900" id="modalTitle">
+                            Invite Friends to Group
+                        </h3>
+                        <div class="mt-2">
+                            <ul id="friendListModal">
+                                <!-- Friends list will be populated here -->
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
+                <button type="button" onclick="closeModal()" class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm">
+                    Close
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Function to show the modal
+    function showModal() {
+        document.getElementById('inviteModal').classList.remove('hidden');
+    }
+
+    // Function to close the modal
+    function closeModal() {
+        document.getElementById('inviteModal').classList.add('hidden');
+    }
+</script>
+
+    
+{% endblock %}
+
+{% block content %}
+<h1> Sample Content </h1>
+{% endblock %}

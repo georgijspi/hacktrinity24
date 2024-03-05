@@ -1,6 +1,7 @@
 from flask import Flask
 from flask_session import Session
 from flask_login import LoginManager
+from flask_wtf import CSRFProtect
 
 from database import db, User
 from routes import create_routes_blueprint
@@ -8,12 +9,13 @@ from routes import create_routes_blueprint
 app = Flask(__name__)
 app.config.from_pyfile('config.py')
 
+csrf = CSRFProtect(app)
 Session(app)
 db.init_app(app)
 
 login_manager = LoginManager()
 login_manager.init_app(app)
-login_manager.login_view = "login"
+login_manager.login_view = "routes.login"
 
 app.register_blueprint(create_routes_blueprint(app))
 
