@@ -1,5 +1,5 @@
 env
 FlaskLunchtime/instance/database.db
-/home/zx/code/hacktrinity24/FlaskLunchtime/__pycache__
-/home/zx/code/hacktrinity24/FlaskLunchtime/flask_session
+FlaskLunchtime/__pycache__
+FlaskLunchtime/flask_session
 georgijs/firebase_implementation/node_modules

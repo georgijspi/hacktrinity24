@@ -59,6 +59,7 @@
             }
         });
     }
+
     function fetchDashboardData() {
         $.ajax({
             url: '/fetch-dashboard-data',
@@ -121,7 +122,6 @@
         });
     }
 
-
     function denyRequest(requestId) {
         var csrftoken = $('meta[name="csrf-token"]').attr('content');
         $.ajax({
@@ -139,6 +139,17 @@
                 alert('Error accepting request: ' + xhr.responseText);
             }
         });
+    }
+
+    function updateFriendRequestButton(username, disabled = true) {
+        const button = $(`button[data-username="${username}"]`);
+        if (disabled) {
+            button.attr('disabled', true);
+            button.text('Request Sent');
+        } else {
+            button.removeAttr('disabled');
+            button.text('Add Friend');
+        }
     }
 
     function createGroup(groupName, description) {
