@@ -1,14 +1,18 @@
 from flask import Blueprint, render_template, session, redirect, url_for, request, send_file
 from flask import flash, jsonify, abort
 from werkzeug.security import generate_password_hash, check_password_hash
+from werkzeug.utils import secure_filename
 from flask_login import login_user, login_required, logout_user, current_user
 
 from dateutil.parser import parse
 from datetime import datetime
 import pytz
+from icalendar import Calendar
+import os
 
-from forms import SignupForm, LoginForm
+from forms import SignupForm, LoginForm, ICalForm
 from database import db, User, Group, UserGroup, Event, Invitation, Friendship
+from icalParse import process_ical_file
 
 # Define routes
 def create_routes_blueprint(app):
@@ -52,9 +56,23 @@ def create_routes_blueprint(app):
         logout_user()
         return redirect(url_for('routes.index'))
         
-    @routes.route('/dashboard')
+    @routes.route('/dashboard', methods=['GET', 'POST'])
     @login_required
     def dashboard():
+        ical_form = ICalForm()
+        if ical_form.validate_on_submit():
+            # Process file upload and event creation here
+            filename = secure_filename(ical_form.ical_file.data.filename)
+            temp_path = os.path.join('temp_ical', filename)
+            ical_form.ical_file.data.save(temp_path)
+
+            # Call function to process the uploaded iCal file
+            process_ical_file(temp_path, current_user.id)
+
+            # Clean up uploaded file
+            os.remove(temp_path)
+            flash('iCal imported successfully!', 'success')
+            return redirect(url_for('routes.dashboard'))
         # Fetch groups the current user is part of
         groups = current_user.groups
 
@@ -80,8 +98,7 @@ def create_routes_blueprint(app):
             Friendship.accepted == False
         ).all()
 
-        return render_template('dashboard.html', groups=groups, friends=friends, pending_requests=pending_requests)
-
+        return render_template('dashboard.html', ical_form=ical_form, groups=groups, friends=friends, pending_requests=pending_requests)
     # API endpoints
 
     @routes.route('/fetch-dashboard-data', methods=['GET'])
@@ -260,13 +277,12 @@ def create_routes_blueprint(app):
 
         group_details = {
             'name': group.name,
-            'description': group.description,
             'chatroom_link': group.chatroom_link,
             'members': members,
-            'events': [{'title': event.title, 'description': event.description} for event in group.events]
+            'events': [{'title': event.title} for event in group.events]
         }
         return jsonify(group_details)
-
+    
     @app.route('/events')
     @login_required
     def events():
@@ -278,9 +294,18 @@ def create_routes_blueprint(app):
         except ValueError:
             abort(400, description="Invalid date format for 'start' or 'end' parameters.")
 
-        query = Event.query.filter(Event.start >= start_date, Event.end <= end_date)
+        # Get IDs of groups the user is a part of
+        user_group_ids = [group.id for group in current_user.groups]
+
+        # Query for personal events and group events within the specified time range
+        query = Event.query.filter(
+            (Event.start >= start_date) & 
+            (Event.end <= end_date) & 
+            ((Event.user_id == current_user.id) | (Event.group_id.in_(user_group_ids)))
+        )
         events = query.all()
 
+        # Format events for FullCalendar
         events_json = [
             {
                 "id": event.id,

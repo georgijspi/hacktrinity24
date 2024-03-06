@@ -108,6 +108,13 @@
 <h1>Welcome back, {{ current_user.username }}!</h1>
 {% endif %}
 
+<!-- Place this within your dashboard.html -->
+<form action="{{ url_for('routes.dashboard') }}" method="post" enctype="multipart/form-data">
+    {{ ical_form.hidden_tag() }}
+    {{ ical_form.ical_file.label }} {{ ical_form.ical_file() }}
+    {{ ical_form.submit() }}
+</form>
+
 <!-- Add Event Modal -->
 <div id="addEventModal" class="hidden fixed inset-0 z-30 overflow-y-auto">
     <div class="flex items-center justify-center min-h-screen">

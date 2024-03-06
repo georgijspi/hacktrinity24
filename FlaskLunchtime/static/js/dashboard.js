@@ -43,7 +43,7 @@ function fetchDashboardData() {
     });
 }
 
-// Initial fetch and set interval for continuous updates
+// Initial dashboard fetch and set interval for continuous updates
 fetchDashboardData();
 setInterval(fetchDashboardData, 5000);
 
@@ -69,19 +69,16 @@ function fetchFriendsNotInGroup(groupId) {
     });
 }
 
-
 // Function to show the modal for group details
 function showGroupDetailsModal(groupId) {
     fetchGroupDetails(groupId);
     document.getElementById('groupDetailsModal').classList.remove('hidden');
 }
 
-
 // Function to close the group details modal
 function closeGroupDetailsModal() {
     document.getElementById('groupDetailsModal').classList.add('hidden');
 }
-
 
 function fetchGroupDetails(groupId) {
     $.ajax({
