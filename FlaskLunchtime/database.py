@@ -31,10 +31,10 @@ class UserGroup(db.Model):
 class Event(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     title = db.Column(db.String(100), nullable=False)
-    description = db.Column(db.String(500), nullable=True)
-    start_time = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
-    end_time = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
-    group_id = db.Column(db.Integer, db.ForeignKey('group.id'), nullable=False)
+    start = db.Column(db.DateTime, nullable=False)
+    end = db.Column(db.DateTime, nullable=False)
+    group_id = db.Column(db.Integer, db.ForeignKey('group.id'), nullable=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True)
 
 class Invitation(db.Model):
     id = db.Column(db.Integer, primary_key=True)

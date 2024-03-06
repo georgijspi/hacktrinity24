@@ -1,7 +1,12 @@
 from flask import Blueprint, render_template, session, redirect, url_for, request, send_file
-from flask import flash, jsonify
+from flask import flash, jsonify, abort
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_login import login_user, login_required, logout_user, current_user
+
+from dateutil.parser import parse
+from datetime import datetime
+import pytz
+
 from forms import SignupForm, LoginForm
 from database import db, User, Group, UserGroup, Event, Invitation, Friendship
 
@@ -166,22 +171,23 @@ def create_routes_blueprint(app):
             return jsonify({'message': 'Friend request denied'}), 200
         return jsonify({'message': 'Request not found'}), 404
 
-
-    @routes.route('/create-group', methods=['POST'])
+    @app.route('/create-group', methods=['POST'])
     @login_required
     def create_group():
         group_name = request.form.get('group_name')
         description = request.form.get('description')
+        chatroom_link = request.form.get('chatroom_link')  # Get chatroom link from form
+
         # Logic to create a group
-        new_group = Group(name=group_name, description=description)
+        new_group = Group(name=group_name, description=description, chatroom_link=chatroom_link)
         db.session.add(new_group)
         db.session.commit()
+
         # Automatically add the creator to the group
         db.session.add(UserGroup(user_id=current_user.id, group_id=new_group.id))
         db.session.commit()
+
         return jsonify({'message': 'Group created successfully'}), 200
-
-
 
     @routes.route('/invite-to-group', methods=['POST'])
     @login_required
@@ -242,5 +248,79 @@ def create_routes_blueprint(app):
                 friends_not_in_group.append({'id': friend.id, 'username': friend.username})
         
         return jsonify({'friends': friends_not_in_group}), 200
+
+    @app.route('/get-group-details/<int:group_id>')
+    @login_required
+    def get_group_details(group_id):
+        group = Group.query.get_or_404(group_id)
+        if current_user not in group.users:
+            return jsonify({'message': 'Unauthorized'}), 403
+
+        members = [{'id': user.id, 'username': user.username} for user in group.users]
+
+        group_details = {
+            'name': group.name,
+            'description': group.description,
+            'chatroom_link': group.chatroom_link,
+            'members': members,
+            'events': [{'title': event.title, 'description': event.description} for event in group.events]
+        }
+        return jsonify(group_details)
+
+    @app.route('/events')
+    @login_required
+    def events():
+        try:
+            start = request.args.get('start', None)
+            end = request.args.get('end', None)
+            start_date = datetime.fromisoformat(start) if start else None
+            end_date = datetime.fromisoformat(end) if end else None
+        except ValueError:
+            abort(400, description="Invalid date format for 'start' or 'end' parameters.")
+
+        query = Event.query.filter(Event.start >= start_date, Event.end <= end_date)
+        events = query.all()
+
+        events_json = [
+            {
+                "id": event.id,
+                "title": event.title,
+                "start": event.start.isoformat(),
+                "end": event.end.isoformat(),
+                "color": "blue" if event.user_id == current_user.id else "green",
+            }
+            for event in events
+        ]
+
+        return jsonify(events_json)
+
+
+    @app.route('/get-groups')
+    @login_required
+    def get_groups():
+        # Assuming `current_user` has the groups attribute due to the back_populates in the User model
+        groups = current_user.groups
+        groups_data = [{'id': group.id, 'name': group.name} for group in groups]
+        return jsonify(groups=groups_data)
+
+    @routes.route('/add-event', methods=['POST'])
+    @login_required
+    def add_event():
+        data = request.get_json()
+
+        if not data or 'title' not in data or 'start' not in data or 'end' not in data or 'group_id' not in data:
+            return jsonify({'message': 'Missing data'}), 400
+        new_event = Event(
+            title = data.get('title'),
+            group_id = data.get('group_id'),
+            start = datetime.fromisoformat(data.get('start')),
+            end = datetime.fromisoformat(data.get('end')),
+            user_id = current_user.id,
+        )
+
+
+        db.session.add(new_event)
+        db.session.commit()
+        return jsonify({'message': 'Event added successfully!'})
 
     return routes
