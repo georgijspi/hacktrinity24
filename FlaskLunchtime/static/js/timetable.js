@@ -44,52 +44,71 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 function openAddEventModal(info) {
-    // Pre-fill the start and optionally end date
-    document.getElementById('eventStart').value = info.dateStr;
+    const startInput = document.getElementById('eventStart');
+    if (!startInput) {
+        console.error('eventStart input not found');
+        return; // Exit the function if element is not found
+    }
+    startInput.value = info.dateStr;
+
     const endDate = new Date(info.dateStr);
     endDate.setHours(endDate.getHours() + 1);
     document.getElementById('eventEnd').value = endDate.toISOString().split('.')[0];
-    // Fetch groups to populate the dropdown
-    fetchGroups();
 
-    // Show modal
-    document.getElementById('addEventModal').classList.remove('hidden');
+    fetchGroups();
+    document.getElementById('eventModal').classList.remove('hidden');
 }
 
-
 function closeAddEventModal() {
-    document.getElementById('addEventModal').classList.add('hidden');
+    document.getElementById('eventModal').classList.add('hidden');
 }
 
 document.getElementById('addEventForm').addEventListener('submit', function(e) {
     e.preventDefault(); // Prevent default form submission
-    
-    const eventData = {
+
+    // Serialize form data
+    var eventData = {
         title: document.getElementById('eventTitle').value,
         start: document.getElementById('eventStart').value,
         end: document.getElementById('eventEnd').value,
         group_id: document.getElementById('eventGroup').value,
     };
-    
+
+    // AJAX request to add event
     addEvent(eventData);
 });
 
 function addEvent(eventData) {
+    // Adjust AJAX call as needed
+    // Example:
     $.ajax({
         url: '/add-event',
         type: 'POST',
         contentType: 'application/json',
         data: JSON.stringify(eventData),
         beforeSend: function(xhr) {
-            xhr.setRequestHeader("X-CSRFToken", $('meta[name="csrf-token"]').attr('content'));
+            xhr.setRequestHeader("X-CSRFToken", $('meta[name="csrf-token"]').attr('content')); // CSRF token
         },
         success: function(response) {
-            alert(response.message);
+            alert('Event added successfully!');
             closeAddEventModal();
-            // Optionally refresh the calendar or page
+            // Optionally, refresh the calendar or specific part of the page
         },
         error: function(xhr) {
             alert('Error adding event: ' + xhr.responseText);
         }
     });
+}
+
+function changeTab(tabName) {
+    // Hide all tab contents
+    document.querySelectorAll('.tab-content').forEach(function(div) {
+        div.classList.add('hidden');
+    });
+    // Show the selected tab content
+    document.getElementById(tabName).classList.remove('hidden');
+
+    // Update tab headers style
+    document.getElementById('createEventTab').classList.toggle('text-blue-500 border-blue-500', tabName === 'createEvent');
+    document.getElementById('checkAvailabilityTab').classList.toggle('text-blue-500 border-blue-500', tabName === 'checkAvailability');
 }

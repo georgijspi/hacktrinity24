@@ -1,8 +1,9 @@
 from flask import Blueprint, render_template, session, redirect, url_for, request, send_file
 from flask import flash, jsonify, abort
+from flask_login import login_user, login_required, logout_user, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
 from werkzeug.utils import secure_filename
-from flask_login import login_user, login_required, logout_user, current_user
+from sqlalchemy.orm import aliased
 
 from dateutil.parser import parse
 from datetime import datetime
@@ -101,7 +102,7 @@ def create_routes_blueprint(app):
         return render_template('dashboard.html', ical_form=ical_form, groups=groups, friends=friends, pending_requests=pending_requests)
     # API endpoints
 
-    @routes.route('/fetch-dashboard-data', methods=['GET'])
+    @routes.route('/get-dashboard-data', methods=['GET'])
     @login_required
     def fetch_dashboard_data():
         # Fetch groups the current user is part of
@@ -188,7 +189,7 @@ def create_routes_blueprint(app):
             return jsonify({'message': 'Friend request denied'}), 200
         return jsonify({'message': 'Request not found'}), 404
 
-    @app.route('/create-group', methods=['POST'])
+    @routes.route('/create-group', methods=['POST'])
     @login_required
     def create_group():
         group_name = request.form.get('group_name')
@@ -266,7 +267,7 @@ def create_routes_blueprint(app):
         
         return jsonify({'friends': friends_not_in_group}), 200
 
-    @app.route('/get-group-details/<int:group_id>')
+    @routes.route('/get-group-details/<int:group_id>')
     @login_required
     def get_group_details(group_id):
         group = Group.query.get_or_404(group_id)
@@ -283,7 +284,7 @@ def create_routes_blueprint(app):
         }
         return jsonify(group_details)
     
-    @app.route('/events')
+    @routes.route('/events')
     @login_required
     def events():
         try:
@@ -320,7 +321,7 @@ def create_routes_blueprint(app):
         return jsonify(events_json)
 
 
-    @app.route('/get-groups')
+    @routes.route('/get-groups')
     @login_required
     def get_groups():
         # Assuming `current_user` has the groups attribute due to the back_populates in the User model
@@ -348,4 +349,34 @@ def create_routes_blueprint(app):
         db.session.commit()
         return jsonify({'message': 'Event added successfully!'})
 
+    @routes.route('/check-availability', methods=['POST'])
+    @login_required
+    def check_availability():
+        data = request.get_json()
+        start = datetime.fromisoformat(data.get('start'))
+        end = datetime.fromisoformat(data.get('end'))
+
+        # Aliased to differentiate between user and friend in the query
+        Friend = aliased(User)
+
+        # Query to find all friends
+        friends_query = db.session.query(Friendship.friend_id).filter(Friendship.user_id == current_user.id, Friendship.accepted == True)
+
+        # Query to find events of these friends that overlap with the given time slot
+        overlapping_events_query = db.session.query(Event.user_id).filter(
+            Event.start < end,
+            Event.end > start,
+            Event.user_id.in_(friends_query)
+        ).subquery()
+
+        # Query to find friends without overlapping events, i.e., available friends
+        available_friends_query = friends_query.except_(db.session.query(overlapping_events_query.c.user_id))
+
+        # Fetching the user objects of available friends
+        available_friends = User.query.filter(User.id.in_(available_friends_query)).all()
+
+        # Format the response
+        available_friends_data = [{'id': friend.id, 'username': friend.username} for friend in available_friends]
+
+        return jsonify(available_friends_data)
     return routes

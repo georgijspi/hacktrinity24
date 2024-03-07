@@ -2,9 +2,9 @@
 // Call this function when initializing the page or when opening the add event modal
 fetchAndPopulateGroups();
 
-function fetchDashboardData() {
+function getDashboardData() {
     $.ajax({
-        url: '/fetch-dashboard-data',
+        url: '/get-dashboard-data',
         type: 'GET',
         success: function(response) {
             // Update Groups
@@ -38,16 +38,16 @@ function fetchDashboardData() {
             });
         },
         error: function() {
-            console.log('Error fetching dashboard data.');
+            console.log('Error getting dashboard data.');
         }
     });
 }
 
-// Initial dashboard fetch and set interval for continuous updates
-fetchDashboardData();
-setInterval(fetchDashboardData, 5000);
+// Initial dashboard get and set interval for continuous updates
+getDashboardData();
+setInterval(getDashboardData, 5000);
 
-function fetchFriendsNotInGroup(groupId) {
+function getFriendsNotInGroup(groupId) {
     $.ajax({
         url: '/get-friends-not-in-group/' + groupId,
         type: 'GET',
@@ -64,14 +64,14 @@ function fetchFriendsNotInGroup(groupId) {
             });
         },
         error: function() {
-            alert('Error fetching friends.');
+            alert('Error getting friends.');
         }
     });
 }
 
 // Function to show the modal for group details
 function showGroupDetailsModal(groupId) {
-    fetchGroupDetails(groupId);
+    getGroupDetails(groupId);
     document.getElementById('groupDetailsModal').classList.remove('hidden');
 }
 
@@ -80,7 +80,7 @@ function closeGroupDetailsModal() {
     document.getElementById('groupDetailsModal').classList.add('hidden');
 }
 
-function fetchGroupDetails(groupId) {
+function getGroupDetails(groupId) {
     $.ajax({
         url: '/get-group-details/' + groupId,
         type: 'GET',
@@ -108,7 +108,7 @@ function fetchGroupDetails(groupId) {
             $('#groupDetailsContent').html(content);
         },
         error: function() {
-            alert('Error fetching group details.');
+            alert('Error getting group details.');
         }
     });
 }
@@ -128,6 +128,11 @@ fetch('/groups')
 }
 
 function fetchGroups() {
+    var select = document.getElementById('eventGroup');
+    if (!select) {
+        console.error('Group select not found');
+        return; // Exit if the select element is not found
+    }
     fetch('/get-groups')
     .then(response => response.json())
     .then(data => {
@@ -140,5 +145,5 @@ function fetchGroups() {
             select.appendChild(option);
         });
     })
-    .catch(error => console.error('Error fetching groups:', error));
+    .catch(error => console.error('Error getting groups:', error));
 }
