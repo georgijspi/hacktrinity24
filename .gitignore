@@ -3,3 +3,4 @@ FlaskLunchtime/instance/database.db
 FlaskLunchtime/__pycache__
 FlaskLunchtime/flask_session
 georgijs/firebase_implementation/node_modules
+frontend/node_modules
