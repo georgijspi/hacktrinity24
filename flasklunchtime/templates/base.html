@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta viewport="width=device-width, initial-scale=1.0">
+    <title>Lunchtime</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.1.2/dist/tailwind.min.css" rel="stylesheet">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+</head>
+<body class="bg-yellow-50 font-sans">
+
+    <!-- Top Navigation Bar -->
+    <div class="bg-yellow-500 text-white p-4">
+        <div class="container mx-auto flex justify-between">
+            <a href="/" class="text-lg font-bold">🥪Lunchtime</a>
+            <div>
+                {% if current_user.is_authenticated %}
+                <a href="/dashboard" class="px-4 hover:underline">Dashboard</a>
+                <a href="/logout" class="px-4 hover:underline">Logout</a>
+                {% else %}
+                <a href="/signup" class="px-4 hover:underline">Sign Up</a>
+                <a href="/login" class="px-4 hover:underline">Login</a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <div class="flex">
+            {% block sidebar %}{% endblock %}
+
+        <!-- Main Content Area -->
+        <div class="flex-1 p-10">
+            {% block content %}{% endblock %}
+        </div>
+    </div>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+<script src="{{ url_for('static', filename='js/groups.js') }}"></script>
+<script src="{{ url_for('static', filename='js/users.js') }}"></script>
+
+<script src="{{ url_for('static', filename='js/timetable.js') }}"></script>
+<script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
+
+</body>
+</html>
