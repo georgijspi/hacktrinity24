@@ -3,17 +3,19 @@
 # Project Overview
 ## Dashboard
 Dashboard Overview
-!Dashboard Overview
+![Dashboard Overview](img/dashboard.png "Dashboard")
 
-The dashboard provides a comprehensive view of the system's current state. It displays key metrics and system status at a glance, allowing users to quickly understand the system's performance and status.
+The dashboard provides a comprehensive view of the system's current state. It displays user information such as the groups they created or are a part of, friendslist as well as pending friend requests.
+
+Additionally, there is an option to upload an iCal file which can be used to import events from external calendar sources such as Google Calendar, or calendar (.ics) invites sent in emails.
 
 ## Calendar Add Event Modal
-!Calendar Add Event Modal
+![Calendar Add Event Modal](img/eventmodal.png "Event Modal")
 
-When you click on a free hour cell in the calendar, an "Add Event" modal appears. This feature allows users to schedule new events directly from the dashboard. The modal includes fields for the event name, start and end times, and additional details.
+When you click on a free hour cell in the calendar, an "Add Event" modal appears. This feature allows users to schedule new events directly from the dashboard. The modal includes fields for the event name, group name, start and end times.
 
 ## Calendar Heatmap View
-!Calendar Heatmap View
+![Calendar Heatmap View](img/heatmap.png "Heatmap")
 
 The calendar heatmap view provides a visual representation of group availability. Green cells indicate times when the entire group is available. This feature makes it easy to identify the best times for scheduling group events.
 
