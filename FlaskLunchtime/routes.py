@@ -6,7 +6,7 @@ from werkzeug.utils import secure_filename
 from sqlalchemy.orm import aliased
 
 from dateutil.parser import parse
-from datetime import datetime
+from datetime import datetime, timedelta
 import pytz
 from icalendar import Calendar
 import os
@@ -379,4 +379,51 @@ def create_routes_blueprint(app):
         available_friends_data = [{'id': friend.id, 'username': friend.username} for friend in available_friends]
 
         return jsonify(available_friends_data)
+
+    @routes.route('/get-availability', methods=['POST'])
+    @login_required
+    def get_availability():
+        data = request.get_json()
+        group_id = data.get('group_id', None)
+        friend_id = data.get('friend_id', None)
+
+        if group_id:
+            availability = calculate_group_availability(group_id)
+        elif friend_id:
+            availability = calculate_friend_availability(friend_id)
+        else:
+            return jsonify({'error': 'Missing group_id or friend_id'}), 400
+
+        return jsonify(availability)
+
+    def calculate_group_availability(group_id):
+        group = Group.query.get(group_id)
+        if not group:
+            return {'error': 'Group not found'}, 404
+        
+        # Example: Calculate availability for the next 7 days
+        base_date = datetime.now()
+        availability = []
+        for day in range(5):
+            day_date = base_date + timedelta(days=day)
+            for hour in range(8, 19):  # Assuming 08:00 to 18:00 as working hours
+                start_datetime = datetime(day_date.year, day_date.month, day_date.day, hour, 0, 0)
+                end_datetime = start_datetime + timedelta(hours=1)
+                total_members = len(group.users)
+                
+                busy_members = db.session.query(Event).join(UserGroup, UserGroup.user_id == Event.user_id).filter(
+                    UserGroup.group_id == group_id,
+                    Event.start < end_datetime,
+                    Event.end > start_datetime
+                ).count()
+                
+                free_members = total_members - busy_members
+                availability_percentage = (free_members / total_members) * 100 if total_members else 0
+
+                availability.append({
+                    'date': start_datetime.strftime('%Y-%m-%d'),
+                    'time': start_datetime.strftime('%H:%M'),
+                    'availability': availability_percentage
+                })
+        return {'availability': availability}
     return routes

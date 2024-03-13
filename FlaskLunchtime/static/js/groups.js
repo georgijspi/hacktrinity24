@@ -31,7 +31,7 @@ function createGroup() {
 
 function inviteToGroup(groupId) {
     showModal();
-    fetchFriendsNotInGroup(groupId);
+    getFriendsNotInGroup(groupId);
 }
 
 function addUserToGroup(userId, groupId) {

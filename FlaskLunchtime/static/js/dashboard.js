@@ -106,6 +106,13 @@ function getGroupDetails(groupId) {
             content += '</ul>';
             
             $('#groupDetailsContent').html(content);
+            // Set the group ID for the button
+            $('#checkGroupAvailabilityBtn').attr('data-group-id', groupId);
+
+            // Alternatively, directly attach the click event listener to the button here
+            $('#checkGroupAvailabilityBtn').off('click').on('click', function() {
+                fetchGroupAvailability(groupId); // Correctly use the groupId from this scope
+            });
         },
         error: function() {
             alert('Error getting group details.');
@@ -146,4 +153,94 @@ function fetchGroups() {
         });
     })
     .catch(error => console.error('Error getting groups:', error));
+}
+
+function fetchGroupAvailability(group_id, friend_id = null) {
+    $.ajax({
+        url: '/get-availability',
+        type: 'POST',
+        contentType: 'application/json',
+        data: JSON.stringify({ group_id: group_id, friend_id: friend_id }),
+        beforeSend: function(xhr) {
+            xhr.setRequestHeader("X-CSRFToken", $('meta[name="csrf-token"]').attr('content'));
+        },
+        success: function(response) {
+            renderNewTimetable(response.availability); // Use the new function here
+        },
+        error: function(xhr) {
+            alert('Error fetching availability: ' + xhr.responseText);
+        }
+    });
+}
+
+function renderHeatmap(availability) {
+    // Clear existing heatmap before rendering a new one
+    calendar.getEvents().forEach(function(event) {
+        if (event.extendedProps.isHeatmap) { // Assuming you mark heatmap events with an extendedProp
+            event.remove();
+        }
+    });
+
+    availability.forEach(slot => {
+        var color = getHeatmapColor(slot.availability);
+        // Assuming you can add background events to act as a heatmap
+        calendar.addEvent({
+            start: slot.date + 'T' + slot.time,
+            end: new Date(slot.date + 'T' + slot.time).addHours(1).toISOString(), // This needs a utility function to add hours
+            rendering: 'background',
+            backgroundColor: color,
+            isHeatmap: true // Custom property to identify heatmap events
+        });
+    });
+}
+
+Date.prototype.addHours = function(h) {
+    this.setTime(this.getTime() + (h*60*60*1000));
+    return this;
+}
+
+
+function getHeatmapColor(availability) {
+    if (availability > 90) return 'rgba(0, 255, 0, 0.5)'; // Opaque green
+    if (availability > 75) return 'rgba(255, 255, 0, 0.5)'; // Opaque yellow
+    if (availability > 50) return 'rgba(255, 0, 0, 0.5)'; // Opaque red
+    return 'rgba(255, 255, 255, 0.5)'; // Default color
+}
+
+// Assuming 'calendar' is initialized in the global scope for accessibility
+var calendar;
+
+function renderNewTimetable(availability) {
+    // Check if the calendar instance exists. If it does, destroy it.
+    if (calendar) {
+        calendar.destroy();
+    }
+
+    // Re-select the calendar element
+    var calendarEl = document.getElementById('calendar');
+
+    // Re-initialize the calendar with possibly new configurations
+    calendar = new FullCalendar.Calendar(calendarEl, {
+        initialView: 'timeGridWeek',
+        headerToolbar: {
+            left: 'prev,next today',
+            center: 'title',
+            right: 'dayGridMonth,timeGridWeek,timeGridDay'
+        },
+        slotMinTime: '08:00:00',
+        slotMaxTime: '19:00:00',
+        allDaySlot: false,
+        nowIndicator: true,
+        expandRows: true,
+        // Convert availability data into background events for heatmap
+        events: availability.map(slot => ({
+            start: slot.date + 'T' + slot.time,
+            end: new Date(slot.date + 'T' + slot.time).addHours(1).toISOString(),
+            rendering: 'background',
+            backgroundColor: getHeatmapColor(slot.availability),
+            allDay: false
+        }))
+    });
+
+    calendar.render();
 }
