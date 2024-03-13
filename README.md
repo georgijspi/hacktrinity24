@@ -1,9 +1,27 @@
-# HackTrinity - Group 11
+**Note:** This project is currently a work in progress and serves as a proof of concept. As such, the visuals may appear lacklustre and certain functionalities, such as account settings and group settings, are not yet available. These features are planned for future development. We appreciate your understanding and patience as we continue to improve and expand the system.
 
-## lunchtime.
+# Project Overview
+## Dashboard
+Dashboard Overview
+!Dashboard Overview
 
-A calendar management web-application that allows you to play your breaks/meetups with your friends automatically.
+The dashboard provides a comprehensive view of the system's current state. It displays key metrics and system status at a glance, allowing users to quickly understand the system's performance and status.
 
-Simply create your calendar, and our app will take care of the rest. 
+## Calendar Add Event Modal
+!Calendar Add Event Modal
 
-Join groups of friends, colleagues, or peers, and our app will tell you when everyone is free to meet up.
+When you click on a free hour cell in the calendar, an "Add Event" modal appears. This feature allows users to schedule new events directly from the dashboard. The modal includes fields for the event name, start and end times, and additional details.
+
+## Calendar Heatmap View
+!Calendar Heatmap View
+
+The calendar heatmap view provides a visual representation of group availability. Green cells indicate times when the entire group is available. This feature makes it easy to identify the best times for scheduling group events.
+
+## System Architecture
+The system architecture consists of a Flask backend/API and a frontend built with JavaScript and jQuery, incorporated into Flask templates.
+
+### Flask Backend/API
+The Flask backend handles all server-side operations. It processes requests, interacts with the database, and returns responses. The API provides endpoints for the frontend to interact with the backend.
+
+### JS + jQuery Frontend
+The frontend is built with JavaScript and jQuery and is incorporated into Flask templates. It provides a dynamic and interactive user interface, making requests to the backend and updating the UI based on the responses.
