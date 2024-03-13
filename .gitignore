@@ -1,6 +1,6 @@
 env
-FlaskLunchtime/instance/database.db
-FlaskLunchtime/__pycache__
-FlaskLunchtime/flask_session
+flasklunchtime/instance/database.db
+flasklunchtime/__pycache__
+flasklunchtime/flask_session
 georgijs/firebase_implementation/node_modules
 frontend/node_modules
